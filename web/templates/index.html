@@ -1,97 +1,309 @@
-
 <!DOCTYPE html>
+
 <html lang="fr">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>ORION-Sort | Dashboard</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+
+        .camera-container {
+
+            max-width: 700px;
+
+            margin-top: 20px;
+
+        }
+
+        .camera-video-wrapper {
+
+    position: relative;
+
+    width: 100%;
+
+    max-width: 700px;
+
+    overflow: hidden;
+
+    border-radius: 12px;
+
+    background: #111;
+
+}
+
+#videoCamera {
+
+    width: 100%;
+
+    display: block;
+
+    border-radius: 12px;
+
+}
+
+#canvasOverlay {
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    pointer-events: none;
+
+}
+
+        #canvasCamera {
+
+            display: none;
+
+        }
+
+        .camera-buttons {
+
+            display: flex;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+
+            margin-top: 15px;
+
+        }
+
+        .camera-buttons button {
+
+            cursor: pointer;
+
+        }
+
+        #resultatIA {
+
+            margin-top: 20px;
+
+            padding: 15px;
+
+            border-radius: 10px;
+
+            background: #f1f4f9;
+
+            color: #17233b;
+
+        }
+
+        #nomMateriau {
+
+            font-size: 24px;
+
+            font-weight: bold;
+
+            margin-top: 10px;
+
+        }
+
+    </style>
+
 </head>
 
 <body>
 
     <aside class="sidebar">
+
         <h2>ORION-Sort</h2>
 
         <p class="menu-title">MENU PRINCIPAL</p>
 
         <a href="/" class="active">Dashboard</a>
+
+        <a href="#camera">Caméra IA</a>
+
         <a href="#classification">Classification</a>
+
         <a href="#historique">Historique</a>
+
         <a href="#materiaux">Matériaux</a>
 
         <div class="sidebar-bottom">
-            <p>Robot de tri intelligent</p>
-            <small>Version de développement</small>
-        </div>
-    </aside>
 
+            <p>Robot de tri intelligent</p>
+
+            <small>Version de développement</small>
+
+        </div>
+
+    </aside>
 
     <main class="main">
 
         <header class="header">
+
             <div>
+
                 <h1>Tableau de bord</h1>
+
                 <p>Surveillance du système de tri ORION-Sort</p>
+
             </div>
 
             <span class="status">● Système connecté</span>
+
         </header>
 
-
         {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="message">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
 
+            {% if messages %}
+
+                {% for message in messages %}
+
+                    <div class="message">{{ message }}</div>
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
 
         <section class="stats">
 
             <div class="stat-card">
+
                 <p>Total des classifications</p>
+
                 <h2>{{ statistiques.total }}</h2>
+
             </div>
 
             <div class="stat-card">
+
                 <p>Plastique</p>
+
                 <h2>{{ statistiques.get('plastique', 0) }}</h2>
+
             </div>
 
             <div class="stat-card">
+
                 <p>Métal</p>
+
                 <h2>{{ statistiques.get('métal', 0) }}</h2>
+
             </div>
 
             <div class="stat-card">
+
                 <p>Papier</p>
+
                 <h2>{{ statistiques.get('papier', 0) }}</h2>
+
             </div>
 
             <div class="stat-card">
+
                 <p>Carton</p>
+
                 <h2>{{ statistiques.get('carton', 0) }}</h2>
+
             </div>
 
             <div class="stat-card">
+
                 <p>Vide</p>
+
                 <h2>{{ statistiques.get('vide', 0) }}</h2>
+
             </div>
 
         </section>
 
+        *<!-- CAMERA EN DIRECT -->
+
+        <section class="panel" id="camera">
+
+            <h2>Reconnaissance intelligente par caméra</h2>
+
+            <p class="description">
+
+                Présente un objet devant ta webcam.
+
+                ORION-Sort va identifier son matériau et annoncer le résultat.
+
+            </p>
+
+            <div class="camera-container">
+
+                <div class="camera-video-wrapper">
+
+    <video id="videoCamera" autoplay playsinline></video>
+
+    <canvas id="canvasOverlay"></canvas>
+
+</div>
+
+<canvas id="canvasCamera"></canvas>
+
+                <div class="camera-buttons">
+
+                    <button type="button" id="btnActiver">
+                        Activer la caméra
+                    </button>
+
+                    <button type="button" id="btnArreter" disabled>
+                        Arrêter la caméra
+                    </button>
+
+                </div>
+
+                <p id="etatCamera">
+
+                    Caméra désactivée.
+
+                </p>
+
+                <div id="resultatIA">
+
+                    <h3>Résultat de l'intelligence artificielle</h3>
+
+                    <p id="nomMateriau">
+
+                        Aucun objet analysé
+
+                    </p>
+
+                    <p id="confianceIA"></p>
+
+                    <p id="messageIA">
+
+                        Présente un objet devant la caméra.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        *<!-- CLASSIFICATION MANUELLE -->
 
         <section class="panel" id="classification">
 
-            <h2>Nouvelle classification</h2>
+            <h2>Nouvelle classification manuelle</h2>
 
             <p class="description">
-                Enregistre manuellement un résultat pour tester la base de données.
+
+                Formulaire de test manuel de la base de données.
+
             </p>
 
             <form action="/ajouter-classification" method="POST">
@@ -101,34 +313,48 @@
                 <select name="materiau_id" required>
 
                     {% for materiau in materiaux %}
+
                         <option value="{{ materiau.id }}">
+
                             {{ materiau.nom }}
+
                         </option>
+
                     {% endfor %}
 
                 </select>
 
-
                 <label>Taux de confiance (%)</label>
 
                 <input
+
                     type="number"
+
                     name="confiance"
+
                     min="0"
+
                     max="100"
+
                     step="0.01"
+
                     placeholder="Exemple : 95.50"
+
                     required
+
                 >
 
                 <button type="submit">
+
                     Enregistrer la classification
+
                 </button>
 
             </form>
 
         </section>
 
+        *<!-- MATERIAUX -->
 
         <section class="panel" id="materiaux">
 
@@ -139,7 +365,9 @@
                 {% for materiau in materiaux %}
 
                     <div class="materiau">
+
                         {{ materiau.nom }}
+
                     </div>
 
                 {% endfor %}
@@ -148,6 +376,7 @@
 
         </section>
 
+        *<!-- HISTORIQUE -->
 
         <section class="panel" id="historique">
 
@@ -158,13 +387,21 @@
                 <table>
 
                     <thead>
+
                         <tr>
+
                             <th>ID</th>
+
                             <th>Matériau</th>
+
                             <th>Confiance</th>
+
                             <th>Modèle</th>
+
                             <th>Date</th>
+
                         </tr>
+
                     </thead>
 
                     <tbody>
@@ -172,19 +409,29 @@
                         {% for classification in classifications %}
 
                             <tr>
+
                                 <td>{{ classification.id }}</td>
+
                                 <td>{{ classification.nom }}</td>
+
                                 <td>{{ classification.confiance }} %</td>
+
                                 <td>{{ classification.version_modele or 'Non défini' }}</td>
+
                                 <td>{{ classification.date_classification }}</td>
+
                             </tr>
 
                         {% else %}
 
                             <tr>
+
                                 <td colspan="5">
+
                                     Aucune classification enregistrée.
+
                                 </td>
+
                             </tr>
 
                         {% endfor %}
@@ -197,12 +444,345 @@
 
         </section>
 
-
         <footer>
+
             ORION-Sort — Projet de robotique intelligente
+
         </footer>
 
     </main>
 
+    *<!-- PROGRAMME DE LA CAMERA -->
+
+    <script>
+        let video = document.getElementById("videoCamera");
+        let canvas = document.getElementById("canvasCamera");
+        let overlay = document.getElementById("canvasOverlay");
+
+        let btnActiver = document.getElementById("btnActiver");
+        let btnArreter = document.getElementById("btnArreter");
+
+        let etatCamera = document.getElementById("etatCamera");
+        let nomMateriau = document.getElementById("nomMateriau");
+        let confianceIA = document.getElementById("confianceIA");
+        let messageIA = document.getElementById("messageIA");
+
+        let fluxCamera = null;
+        let intervalleDetection = null;
+        let requeteEnCours = false;
+        let detectionsStables = 0;
+        let debutPresence = null;
+        let verrouClassification = false;
+        let absencesConsecutives = 0;
+        let derniereBoite = null;
+        let contexteOverlay = overlay.getContext("2d");
+
+        function preparerCanvas() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            overlay.width = video.videoWidth;
+            overlay.height = video.videoHeight;
+            contexteOverlay.clearRect(0, 0, overlay.width, overlay.height);
+        }
+
+        function dessinerRectangle(boite, largeurDetection, hauteurDetection) {
+            contexteOverlay.clearRect(0, 0, overlay.width, overlay.height);
+
+            if (boite === null) {
+                return;
+            }
+
+            let facteurX = overlay.width / largeurDetection;
+            let facteurY = overlay.height / hauteurDetection;
+            let x = boite.x * facteurX;
+            let y = boite.y * facteurY;
+            let largeur = boite.w * facteurX;
+            let hauteur = boite.h * facteurY;
+
+            contexteOverlay.lineWidth = 4;
+            contexteOverlay.strokeStyle = "#00ff66";
+            contexteOverlay.strokeRect(x, y, largeur, hauteur);
+            contexteOverlay.fillStyle = "#00ff66";
+            contexteOverlay.font = "bold 18px Arial";
+            contexteOverlay.fillText("Objet détecté", x, Math.max(22, y - 8));
+        }
+
+        function capturerImage() {
+            return new Promise(function(resolve, reject) {
+                let contexteCapture = canvas.getContext("2d");
+                contexteCapture.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(function(blob) {
+                    if (blob === null) {
+                        reject(new Error("Impossible de capturer l'image."));
+                        return;
+                    }
+                    resolve(blob);
+                }, "image/jpeg", 0.90);
+            });
+        }
+
+        async function classifierObjet(boite, largeurDetection, hauteurDetection) {
+            etatCamera.textContent = "Objet détecté. Classification en cours...";
+
+            let facteurX = canvas.width / largeurDetection;
+            let facteurY = canvas.height / hauteurDetection;
+            let x = Math.floor(boite.x * facteurX);
+            let y = Math.floor(boite.y * facteurY);
+            let largeur = Math.ceil(boite.w * facteurX);
+            let hauteur = Math.ceil(boite.h * facteurY);
+            let margeX = Math.floor(largeur * 0.12);
+            let margeY = Math.floor(hauteur * 0.12);
+
+            x = Math.max(0, x - margeX);
+            y = Math.max(0, y - margeY);
+
+            let xFin = Math.min(canvas.width, x + largeur + (margeX * 2));
+            let yFin = Math.min(canvas.height, y + hauteur + (margeY * 2));
+            let largeurCrop = xFin - x;
+            let hauteurCrop = yFin - y;
+
+            if (largeurCrop <= 0 || hauteurCrop <= 0) {
+                throw new Error("Le cadrage de l'objet est invalide.");
+            }
+
+            let canvasCrop = document.createElement("canvas");
+            canvasCrop.width = largeurCrop;
+            canvasCrop.height = hauteurCrop;
+
+            let contexteCrop = canvasCrop.getContext("2d");
+            contexteCrop.drawImage(
+                canvas, x, y, largeurCrop, hauteurCrop,
+                0, 0, largeurCrop, hauteurCrop
+            );
+
+            let blob = await new Promise(function(resolve, reject) {
+                canvasCrop.toBlob(function(imageBlob) {
+                    if (imageBlob === null) {
+                        reject(new Error("Impossible de préparer l'image de l'objet."));
+                        return;
+                    }
+                    resolve(imageBlob);
+                }, "image/jpeg", 0.90);
+            });
+
+            let donnees = new FormData();
+            donnees.append("image", blob, "objet.jpg");
+
+            let reponse = await fetch("/api/classifier-camera", {
+                method: "POST",
+                body: donnees
+            });
+
+            let resultat = await reponse.json();
+
+            if (!reponse.ok || !resultat.succes) {
+                throw new Error(resultat.message || "Erreur de classification.");
+            }
+
+            nomMateriau.textContent = resultat.materiau;
+            confianceIA.textContent = "Confiance : " + resultat.confiance + " %";
+            messageIA.textContent = resultat.message;
+            etatCamera.textContent =
+                "Classification terminée. Retire l'objet pour continuer.";
+
+            let annonce = new SpeechSynthesisUtterance();
+            annonce.lang = "fr-FR";
+
+            if (resultat.enregistre) {
+                annonce.text =
+                    "Cet objet est classé comme " +
+                    resultat.materiau +
+                    ". Taux de confiance : " +
+                    resultat.confiance +
+                    " pour cent.";
+            } else {
+                annonce.text =
+                    "Résultat incertain. Je pense que c'est " +
+                    resultat.materiau +
+                    ". Veuillez présenter à nouveau l'objet.";
+            }
+
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(annonce);
+        }
+
+        async function detecterAutomatiquement() {
+            if (fluxCamera === null || requeteEnCours) {
+                return;
+            }
+
+            requeteEnCours = true;
+
+            try {
+                preparerCanvas();
+                let blob = await capturerImage();
+                let donnees = new FormData();
+                donnees.append("image", blob, "camera.jpg");
+
+                let reponse = await fetch("/api/detecter-camera", {
+                    method: "POST",
+                    body: donnees
+                });
+
+                let resultat = await reponse.json();
+
+                if (!reponse.ok || !resultat.succes) {
+                    throw new Error(resultat.message || "Erreur de détection.");
+                }
+
+                if (resultat.statut === "calibration") {
+                    dessinerRectangle(null, resultat.largeur, resultat.hauteur);
+                    etatCamera.textContent =
+                        "Calibration de la zone. Ne place aucun objet devant la caméra.";
+                    detectionsStables = 0;
+                    debutPresence = null;
+                    return;
+                }
+
+                if (resultat.statut === "objet_detecte" && resultat.boite) {
+                    derniereBoite = resultat.boite;
+
+                    dessinerRectangle(
+                        resultat.boite,
+                        resultat.largeur,
+                        resultat.hauteur
+                    );
+
+                    if (verrouClassification) {
+                        absencesConsecutives = 0;
+                        etatCamera.textContent =
+                            "Objet déjà classifié. Retire-le de la zone.";
+                        return;
+                    }
+
+                    detectionsStables = detectionsStables + 1;
+
+                    if (detectionsStables >= 3) {
+                        if (debutPresence === null) {
+                            debutPresence = Date.now();
+                        }
+
+                        let tempsEcoule = Date.now() - debutPresence;
+                        let secondesRestantes = Math.ceil((1000 - tempsEcoule) / 1000);
+
+                        if (secondesRestantes > 0) {
+                            etatCamera.textContent =
+                                "Objet détecté. Analyse dans " +
+                                secondesRestantes +
+                                " seconde(s)...";
+                        } else {
+                            verrouClassification = true;
+                            absencesConsecutives = 0;
+                            await classifierObjet(
+                                derniereBoite,
+                                resultat.largeur,
+                                resultat.hauteur
+                            );
+                        }
+                    } else {
+                        etatCamera.textContent =
+                            "Objet repéré. Stabilisation de la détection...";
+                    }
+                } else {
+                    dessinerRectangle(null, resultat.largeur, resultat.hauteur);
+                    detectionsStables = 0;
+                    debutPresence = null;
+
+                    if (verrouClassification) {
+                        absencesConsecutives = absencesConsecutives + 1;
+
+                        if (absencesConsecutives >= 8) {
+                            verrouClassification = false;
+                            absencesConsecutives = 0;
+                            derniereBoite = null;
+                            nomMateriau.textContent = "Aucun objet analysé";
+                            confianceIA.textContent = "";
+                            messageIA.textContent =
+                                "Présente un nouvel objet devant la caméra.";
+                            etatCamera.textContent =
+                                "Zone libre. En attente d'un nouvel objet.";
+                        }
+                    } else {
+                        etatCamera.textContent = "En attente d'un objet...";
+                    }
+                }
+            } catch (erreur) {
+                etatCamera.textContent = "Erreur : " + erreur.message;
+            } finally {
+                requeteEnCours = false;
+            }
+        }
+
+        btnActiver.addEventListener("click", async function() {
+            try {
+                fluxCamera = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: "environment"
+                    },
+                    audio: false
+                });
+
+                video.srcObject = fluxCamera;
+                await video.play();
+                preparerCanvas();
+
+                detectionsStables = 0;
+                debutPresence = null;
+                verrouClassification = false;
+                absencesConsecutives = 0;
+                derniereBoite = null;
+
+                nomMateriau.textContent = "Aucun objet analysé";
+                confianceIA.textContent = "";
+                messageIA.textContent = "Présente un objet devant la caméra.";
+
+                btnActiver.disabled = true;
+                btnArreter.disabled = false;
+                etatCamera.textContent =
+                    "Caméra activée. Calibration de la zone en cours...";
+
+                detecterAutomatiquement();
+                intervalleDetection = setInterval(detecterAutomatiquement, 300);
+            } catch (erreur) {
+                fluxCamera = null;
+                etatCamera.textContent =
+                    "Impossible d'activer la caméra : " + erreur.message;
+            }
+        });
+
+        btnArreter.addEventListener("click", function() {
+            if (intervalleDetection !== null) {
+                clearInterval(intervalleDetection);
+                intervalleDetection = null;
+            }
+
+            if (fluxCamera !== null) {
+                fluxCamera.getTracks().forEach(function(piste) {
+                    piste.stop();
+                });
+                fluxCamera = null;
+            }
+
+            video.srcObject = null;
+            contexteOverlay.clearRect(0, 0, overlay.width, overlay.height);
+            window.speechSynthesis.cancel();
+
+            requeteEnCours = false;
+            detectionsStables = 0;
+            debutPresence = null;
+            verrouClassification = false;
+            absencesConsecutives = 0;
+            derniereBoite = null;
+
+            btnArreter.disabled = true;
+            btnActiver.disabled = false;
+            etatCamera.textContent = "Caméra arrêtée.";
+        });
+    </script>
+
 </body>
+
 </html>

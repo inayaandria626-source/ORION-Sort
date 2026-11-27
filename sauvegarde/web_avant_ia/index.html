@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ORION-Sort | Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <h2>ORION-Sort</h2>
+
+        <p class="menu-title">MENU PRINCIPAL</p>
+
+        <a href="/" class="active">Dashboard</a>
+        <a href="#classification">Classification</a>
+        <a href="#historique">Historique</a>
+        <a href="#materiaux">Matériaux</a>
+
+        <div class="sidebar-bottom">
+            <p>Robot de tri intelligent</p>
+            <small>Version de développement</small>
+        </div>
+    </aside>
+
+
+    <main class="main">
+
+        <header class="header">
+            <div>
+                <h1>Tableau de bord</h1>
+                <p>Surveillance du système de tri ORION-Sort</p>
+            </div>
+
+            <span class="status">● Système connecté</span>
+        </header>
+
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+
+        <section class="stats">
+
+            <div class="stat-card">
+                <p>Total des classifications</p>
+                <h2>{{ statistiques.total }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Plastique</p>
+                <h2>{{ statistiques.get('plastique', 0) }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Métal</p>
+                <h2>{{ statistiques.get('métal', 0) }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Papier</p>
+                <h2>{{ statistiques.get('papier', 0) }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Carton</p>
+                <h2>{{ statistiques.get('carton', 0) }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Vide</p>
+                <h2>{{ statistiques.get('vide', 0) }}</h2>
+            </div>
+
+        </section>
+
+
+        <section class="panel" id="classification">
+
+            <h2>Nouvelle classification</h2>
+
+            <p class="description">
+                Enregistre manuellement un résultat pour tester la base de données.
+            </p>
+
+            <form action="/ajouter-classification" method="POST">
+
+                <label>Matériau détecté</label>
+
+                <select name="materiau_id" required>
+
+                    {% for materiau in materiaux %}
+                        <option value="{{ materiau.id }}">
+                            {{ materiau.nom }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+
+
+                <label>Taux de confiance (%)</label>
+
+                <input
+                    type="number"
+                    name="confiance"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="Exemple : 95.50"
+                    required
+                >
+
+                <button type="submit">
+                    Enregistrer la classification
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <section class="panel" id="materiaux">
+
+            <h2>Matériaux disponibles</h2>
+
+            <div class="materiaux">
+
+                {% for materiau in materiaux %}
+
+                    <div class="materiau">
+                        {{ materiau.nom }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+
+        <section class="panel" id="historique">
+
+            <h2>Dernières classifications</h2>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Matériau</th>
+                            <th>Confiance</th>
+                            <th>Modèle</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for classification in classifications %}
+
+                            <tr>
+                                <td>{{ classification.id }}</td>
+                                <td>{{ classification.nom }}</td>
+                                <td>{{ classification.confiance }} %</td>
+                                <td>{{ classification.version_modele or 'Non défini' }}</td>
+                                <td>{{ classification.date_classification }}</td>
+                            </tr>
+
+                        {% else %}
+
+                            <tr>
+                                <td colspan="5">
+                                    Aucune classification enregistrée.
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+            ORION-Sort — Projet de robotique intelligente
+        </footer>
+
+    </main>
+
+</body>
+</html>
