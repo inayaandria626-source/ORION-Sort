@@ -1,0 +1,496 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ORION-Sort | Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .camera-container {
+            max-width: 700px;
+            margin-top: 20px;
+        }
+
+        #videoCamera {
+            width: 100%;
+            background: #111;
+            border-radius: 12px;
+            display: block;
+        }
+
+        #canvasCamera {
+            display: none;
+        }
+
+        .camera-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .camera-buttons button {
+            cursor: pointer;
+        }
+
+        #resultatIA {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f1f4f9;
+            color: #17233b;
+        }
+
+        #nomMateriau {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <h2>ORION-Sort</h2>
+
+        <p class="menu-title">MENU PRINCIPAL</p>
+
+        <a href="/" class="active">Dashboard</a>
+        <a href="#camera">Caméra IA</a>
+        <a href="#classification">Classification</a>
+        <a href="#historique">Historique</a>
+        <a href="#materiaux">Matériaux</a>
+
+        <div class="sidebar-bottom">
+            <p>Robot de tri intelligent</p>
+            <small>Version de développement</small>
+        </div>
+
+    </aside>
+
+
+    <main class="main">
+
+        <header class="header">
+
+            <div>
+                <h1>Tableau de bord</h1>
+                <p>Surveillance du système de tri ORION-Sort</p>
+            </div>
+
+            <span class="status">● Système connecté</span>
+
+        </header>
+
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+
+        <section class="stats">
+
+            <div class="stat-card">
+                <p>Total des classifications</p>
+                <h2>{{ statistiques.total }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Plastique</p>
+                <h2>{{ statistiques.get('plastique', 0) }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Métal</p>
+                <h2>{{ statistiques.get('métal', 0) }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Papier</p>
+                <h2>{{ statistiques.get('papier', 0) }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Carton</p>
+                <h2>{{ statistiques.get('carton', 0) }}</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Vide</p>
+                <h2>{{ statistiques.get('vide', 0) }}</h2>
+            </div>
+
+        </section>
+
+
+        <!-- CAMERA EN DIRECT -->
+
+        <section class="panel" id="camera">
+
+            <h2>Reconnaissance intelligente par caméra</h2>
+
+            <p class="description">
+                Présente un objet devant ta webcam.
+                ORION-Sort va identifier son matériau et annoncer le résultat.
+            </p>
+
+            <div class="camera-container">
+
+                <video id="videoCamera" autoplay playsinline></video>
+
+                <canvas id="canvasCamera"></canvas>
+
+                <div class="camera-buttons">
+
+                    <button type="button" id="btnActiver">
+                        Activer la caméra
+                    </button>
+
+                    <button type="button" id="btnAnalyser" disabled>
+                        Analyser l'objet
+                    </button>
+
+                    <button type="button" id="btnArreter" disabled>
+                        Arrêter la caméra
+                    </button>
+
+                </div>
+
+                <p id="etatCamera">
+                    Caméra désactivée.
+                </p>
+
+                <div id="resultatIA">
+
+                    <h3>Résultat de l'intelligence artificielle</h3>
+
+                    <p id="nomMateriau">
+                        Aucun objet analysé
+                    </p>
+
+                    <p id="confianceIA"></p>
+
+                    <p id="messageIA">
+                        Présente un objet devant la caméra.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CLASSIFICATION MANUELLE -->
+
+        <section class="panel" id="classification">
+
+            <h2>Nouvelle classification manuelle</h2>
+
+            <p class="description">
+                Formulaire de test manuel de la base de données.
+            </p>
+
+            <form action="/ajouter-classification" method="POST">
+
+                <label>Matériau détecté</label>
+
+                <select name="materiau_id" required>
+
+                    {% for materiau in materiaux %}
+                        <option value="{{ materiau.id }}">
+                            {{ materiau.nom }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+
+                <label>Taux de confiance (%)</label>
+
+                <input
+                    type="number"
+                    name="confiance"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="Exemple : 95.50"
+                    required
+                >
+
+                <button type="submit">
+                    Enregistrer la classification
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- MATERIAUX -->
+
+        <section class="panel" id="materiaux">
+
+            <h2>Matériaux disponibles</h2>
+
+            <div class="materiaux">
+
+                {% for materiau in materiaux %}
+
+                    <div class="materiau">
+                        {{ materiau.nom }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+
+        <!-- HISTORIQUE -->
+
+        <section class="panel" id="historique">
+
+            <h2>Dernières classifications</h2>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Matériau</th>
+                            <th>Confiance</th>
+                            <th>Modèle</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for classification in classifications %}
+
+                            <tr>
+                                <td>{{ classification.id }}</td>
+                                <td>{{ classification.nom }}</td>
+                                <td>{{ classification.confiance }} %</td>
+                                <td>{{ classification.version_modele or 'Non défini' }}</td>
+                                <td>{{ classification.date_classification }}</td>
+                            </tr>
+
+                        {% else %}
+
+                            <tr>
+                                <td colspan="5">
+                                    Aucune classification enregistrée.
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+            ORION-Sort — Projet de robotique intelligente
+        </footer>
+
+    </main>
+
+
+    <!-- PROGRAMME DE LA CAMERA -->
+
+    <script>
+
+        let video = document.getElementById("videoCamera");
+        let canvas = document.getElementById("canvasCamera");
+
+        let btnActiver = document.getElementById("btnActiver");
+        let btnAnalyser = document.getElementById("btnAnalyser");
+        let btnArreter = document.getElementById("btnArreter");
+
+        let etatCamera = document.getElementById("etatCamera");
+        let nomMateriau = document.getElementById("nomMateriau");
+        let confianceIA = document.getElementById("confianceIA");
+        let messageIA = document.getElementById("messageIA");
+
+        let fluxCamera = null;
+
+
+        // Activer la webcam
+        btnActiver.addEventListener("click", async function() {
+
+            try {
+
+                fluxCamera = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: 640,
+                        height: 480
+                    },
+                    audio: false
+                });
+
+                video.srcObject = fluxCamera;
+
+                etatCamera.textContent = "Caméra activée. Présente un objet.";
+
+                btnAnalyser.disabled = false;
+                btnArreter.disabled = false;
+                btnActiver.disabled = true;
+
+            } catch (erreur) {
+
+                etatCamera.textContent =
+                    "Impossible d'activer la caméra : " + erreur.message;
+
+            }
+
+        });
+
+
+        // Arrêter la webcam
+        btnArreter.addEventListener("click", function() {
+
+            if (fluxCamera !== null) {
+
+                fluxCamera.getTracks().forEach(function(piste) {
+                    piste.stop();
+                });
+
+                fluxCamera = null;
+            }
+
+            video.srcObject = null;
+
+            btnAnalyser.disabled = true;
+            btnArreter.disabled = true;
+            btnActiver.disabled = false;
+
+            etatCamera.textContent = "Caméra arrêtée.";
+
+        });
+
+
+        // Capturer et envoyer l'image au modèle IA
+        btnAnalyser.addEventListener("click", async function() {
+
+            if (fluxCamera === null) {
+                return;
+            }
+
+            btnAnalyser.disabled = true;
+
+            etatCamera.textContent = "Analyse de l'objet en cours...";
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            let contexte = canvas.getContext("2d");
+
+            contexte.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            canvas.toBlob(async function(blob) {
+
+                if (blob === null) {
+
+                    etatCamera.textContent = "Erreur lors de la capture.";
+                    btnAnalyser.disabled = false;
+                    return;
+                }
+
+                let donnees = new FormData();
+
+                donnees.append("image", blob, "capture.jpg");
+
+                try {
+
+                    let reponse = await fetch("/api/classifier-camera", {
+                        method: "POST",
+                        body: donnees
+                    });
+
+                    let resultat = await reponse.json();
+
+                    if (!reponse.ok || !resultat.succes) {
+
+                        throw new Error(resultat.message || "Erreur d'analyse.");
+
+                    }
+
+                    nomMateriau.textContent = resultat.materiau;
+                    confianceIA.textContent =
+                        "Confiance : " + resultat.confiance + " %";
+
+                    messageIA.textContent = resultat.message;
+
+                    etatCamera.textContent = "Analyse terminée.";
+
+                    // Annonce vocale en français
+                    let annonce = new SpeechSynthesisUtterance();
+
+                    annonce.lang = "fr-FR";
+
+                    if (resultat.enregistre) {
+
+                        annonce.text =
+                            "Cet objet est classé comme " +
+                            resultat.materiau +
+                            ". Taux de confiance : " +
+                            resultat.confiance +
+                            " pour cent.";
+
+                    } else {
+
+                        annonce.text =
+                            "Résultat incertain. Je pense que c'est " +
+                            resultat.materiau +
+                            ". Veuillez présenter à nouveau l'objet.";
+
+                    }
+
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(annonce);
+
+                } catch (erreur) {
+
+                    messageIA.textContent = erreur.message;
+
+                    etatCamera.textContent = "Erreur pendant l'analyse.";
+
+                }
+
+                btnAnalyser.disabled = false;
+
+            }, "image/jpeg", 0.90);
+
+        });
+
+    </script>
+
+</body>
+</html>
